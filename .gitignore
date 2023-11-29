@@ -1,0 +1,4 @@
+demo/__pycache__/
+demo/migrations/
+demo_admin/__pycache__/
+libs/__pycache__/
