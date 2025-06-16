@@ -15,3 +15,4 @@ venv/
 htmlcov/
 .cursorrules
 staticfiles/
+users/migrations/
