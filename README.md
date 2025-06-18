@@ -2,282 +2,144 @@
 
 这是一个基于 Django + DRF 的现代化项目模板，集成了常用功能和最佳实践，经过系统性代码审查和优化。
 
-## ✨ 特性
+---
 
-- 🎯 基于 Django 5.0.1 和 DRF 3.14.0
-- 🔐 完整的JWT认证系统（含token管理）
-- 🗄️ PostgreSQL 数据库支持
-- ⚡ 本地内存缓存系统
-- 📚 Swagger/ReDoc API 文档
-- 📝 结构化日志系统 (loguru)
-- 🐳 完整 Docker 支持
-- 🌐 CORS 跨域支持
-- 🛡️ 安全中间件配置
-- 👤 扩展的自定义用户模型
-- 🗑️ 软删除功能
-- ⏱️ API 限流和性能监控
-- 📊 请求/响应时间监控
-- 🎨 静态文件优化 (WhiteNoise)
-- 🔄 统一API响应格式
-- 🛠️ 丰富的自定义装饰器
+## ✨ 特色功能
+
+- ⛓ 统一的 **JWT** 认证与刷新机制
+- 🗂️ **PostgreSQL** 数据库存储，连接池与长连接优化
+- 🚦 **DRF** + 自定义响应渲染器，统一 API 返回格式
+- 🎛️ 多中间件支持：请求日志、性能监控、静态文件、CORS 等
+- 🧩 内置 **软删除** 与时间戳基类模型，支持审计字段
+- 📚 **Swagger** / **ReDoc** 在线 API 文档，支持 Token 调试
+- ⚡ 本地内存缓存 + 装饰器级缓存封装
+- 🔐 速率限制、参数校验、装饰器式日志记录
+- 🐳 一条命令启动的 **Docker** 化部署
+
+---
+
+## 📂 目录结构
+
+```
+backend/
+├── config/              # Django 全局配置
+│   ├── settings.py      # 设置文件（按环境变量动态配置）
+│   ├── urls.py          # 根路由
+│   └── wsgi.py          # WSGI 入口
+├── core/                # 核心抽象 & 中间件
+│   ├── exceptions.py    # 全局异常处理
+│   ├── middleware.py    # 请求日志 & 性能监控
+│   ├── models.py        # BaseModel 软删除实现
+│   ├── pagination.py    # 自定义分页
+│   ├── renderers.py     # 统一响应渲染器
+│   └── views.py         # 通用视图基类
+├── users/               # 用户与认证模块
+│   ├── authentication.py# JWT 认证实现
+│   ├── models.py        # 自定义用户、Token
+│   └── views.py         # 用户接口
+├── libs/                # 通用工具库
+│   ├── decorators.py    # 日志/限流/缓存等装饰器
+│   └── logging.py       # Loguru 日志配置
+├── Dockerfile           # 后端镜像构建脚本
+├── docker-compose.yml   # 容器编排
+├── env.template         # 环境变量模板
+├── manage.py            # Django 管理脚本
+└── requirements.txt     # Python 依赖清单
+```
+
+---
 
 ## 🚀 快速开始
 
-### 使用 Docker（推荐）
-
-1. **克隆项目**
+### 1. 克隆仓库
 ```bash
-git clone git@github.com:LiukerSun/DjangoTemplate.git
-cd DjangoTemplate
+git clone <your-repo-url> LiveControl && cd LiveControl/backend
 ```
 
-2. **配置环境变量**
+### 2. 使用 Docker（推荐）
 ```bash
+# 复制并修改环境变量
 cp env.template .env
-# 编辑 .env 文件，填写必要的配置
-```
-
-3. **启动服务**
-```bash
+# 一键启动
 docker-compose up -d --build
-```
-
-4. **数据库初始化**
-```bash
+# 首次启动后初始化数据库
 docker-compose exec web python manage.py migrate
 docker-compose exec web python manage.py createsuperuser
 ```
 
-5. **查看API文档**
-- Swagger UI: http://localhost:8000/swagger/
-- ReDoc: http://localhost:8000/redoc/
+访问接口文档：
+- Swagger: http://localhost:8000/swagger/
+- ReDoc:   http://localhost:8000/redoc/
 
-### 本地开发
-
-1. **创建虚拟环境**
+### 3. 本地开发
 ```bash
-python -m venv venv
-source venv/bin/activate  # Linux/Mac
-venv\Scripts\activate  # Windows
-```
-
-2. **安装依赖**
-```bash
+python -m venv venv && source venv/bin/activate  # Windows 使用 venv\Scripts\activate
 pip install -r requirements.txt
-```
-
-3. **配置环境**
-```bash
 cp env.template .env
-# 编辑 .env 文件，配置数据库等信息
+python manage.py migrate && python manage.py createsuperuser
+python manage.py runserver 0.0.0.0:8000
 ```
 
-4. **数据库设置**
-```bash
-python manage.py migrate
-python manage.py createsuperuser
-```
+> 提示：在 `DEBUG=True` 模式下，浏览器可访问 `/swagger/` 调试接口。
 
-5. **启动开发服务器**
-```bash
-python manage.py runserver
-```
+---
 
-## 📁 项目结构
+## ⚙️ 关键配置
 
-```
-DjangoTemplate/
-├── config/                 # Django 项目配置
-│   ├── __init__.py
-│   ├── settings.py        # 主配置文件
-│   ├── urls.py           # 主路由配置
-│   └── wsgi.py           # WSGI 配置
-├── core/                  # 核心应用
-│   ├── __init__.py
-│   ├── exceptions.py     # 自定义异常处理
-│   ├── middleware.py     # 自定义中间件
-│   ├── models.py         # 基础模型（软删除等）
-│   ├── pagination.py     # 分页组件
-│   ├── serializers.py    # 基础序列化器
-│   └── views.py          # 基础视图集
-├── users/                 # 用户管理应用
-│   ├── __init__.py
-│   ├── apps.py           # 应用配置
-│   ├── authentication.py # JWT认证实现
-│   ├── migrations/       # 数据库迁移文件
-│   ├── models.py         # 用户模型和Token模型
-│   ├── serializers.py    # 用户序列化器
-│   ├── urls.py           # 用户路由
-│   └── views.py          # 用户视图集
-├── libs/                  # 工具库
-│   ├── decorators.py     # 自定义装饰器（日志、限流等）
-│   └── logging.py        # 日志配置
-├── logs/                 # 日志文件目录
-│   └── .gitkeep         # 保持目录存在
-├── requirements.txt      # Python 依赖
-├── Dockerfile           # Docker 镜像配置
-├── docker-compose.yml   # Docker Compose 配置
-├── env.template         # 环境变量模板
-└── manage.py           # Django 管理脚本
-```
+所有可调参数均通过 **环境变量** 注入，详见 `env.template`：
 
-## 🔧 核心功能
+| 变量 | 说明 | 默认 |
+| --- | --- | --- |
+| `DEBUG` | 是否开启调试模式 | `True` |
+| `DB_*` | 数据库连接信息 | - |
+| `SECRET_KEY` | Django 密钥 | - |
+| `JWT_EXPIRATION_DELTA` | 访问令牌有效期（天） | `7` |
+| `JWT_REFRESH_EXPIRATION_DELTA` | 刷新令牌有效期（天） | `30` |
+| `ALLOWED_HOSTS` | 允许的主机名 | `*` |
+| `CORS_ALLOWED_ORIGINS` | 允许跨域的地址 | - |
 
-### 认证系统
-- **JWT Token 认证**: 支持access token和refresh token
-- **自定义用户模型**: 扩展字段包含手机号、邮箱、头像、性别等
-- **Token管理**: 自动失效旧token，支持多设备登录跟踪
-- **认证装饰器**: 提供便捷的认证和权限控制
+配置生效顺序：`.env` > 系统环境变量 > settings 默认值。
 
-### 中间件系统
-- `RequestLogMiddleware`: 详细的请求日志记录，自动过滤敏感信息
-- `ResponseTimeMiddleware`: 响应时间监控，慢请求告警
-- `WhiteNoiseMiddleware`: 高效的静态文件服务
-- `CorsMiddleware`: 完整的跨域请求支持
+---
 
-### 基础模型和视图
-- **BaseModel**: 提供软删除、时间戳等通用功能
-- **BaseViewSet**: 统一的API响应格式，自动异常处理
-- **BaseModelSerializer**: 统一的序列化器基类
-
-### 装饰器系统
-- `@api_log`: API调用日志记录
-- `@validate_body_params`: 请求参数验证
-- `@rate_limit`: API限流保护
-- `@cache_response`: 响应缓存
-- `@log_time`: 性能监控
-
-### 缓存系统
-项目使用 Django 内置的本地内存缓存，适合：
-- 🖥️ 单机部署场景
-- 🔬 开发和测试环境
-- 📦 中小型项目
-- ⚡ 快速原型开发
-
-缓存配置项：
-- `TIMEOUT`: 缓存过期时间（默认300秒）
-- `MAX_ENTRIES`: 最大缓存条目数（默认1000）
-- `CULL_FREQUENCY`: 清除频率（默认1/3）
-
-## 📖 API 文档
-
-项目集成了两种API文档格式：
-
-### Swagger UI
-- 开发环境: http://localhost:8000/swagger/
-- 交互式API测试界面
-- 支持Bearer Token认证
-
-### ReDoc
-- 开发环境: http://localhost:8000/redoc/
-- 美观的API文档展示
-- 更好的阅读体验
-
-### 主要API端点
-
-- `POST /api/users/`: 用户注册
-- `POST /api/users/login/`: 用户登录
-- `POST /api/users/logout/`: 用户登出
-- `GET /api/users/profile/`: 获取个人信息
-- `POST /api/users/change_password/`: 修改密码
-
-## 🚢 部署指南
-
-### Docker 部署（推荐）
+## 🔧 常用命令
 
 ```bash
-# 构建并启动服务
-docker-compose up -d --build
-
-# 数据库初始化
-docker-compose exec web python manage.py migrate
-
-# 查看服务状态
-docker-compose ps
-
-# 查看日志
-docker-compose logs -f web
-
-# 停止服务
-docker-compose down
-```
-
-### 生产环境部署
-
-1. **安装依赖**
-```bash
-pip install -r requirements.txt
-```
-
-2. **配置环境变量**
-```bash
-# 设置生产环境变量
-export DEBUG=False
-export SECRET_KEY=your-secret-key
-export DB_NAME=your-db-name
-# ... 其他环境变量
-```
-
-3. **数据库迁移**
-```bash
-python manage.py migrate
-```
-
-4. **创建超级用户**
-```bash
-python manage.py createsuperuser
-```
-
-5. **启动 Gunicorn**
-```bash
-gunicorn --bind 0.0.0.0:8000 --workers 4 --threads 4 config.wsgi:application
-```
-
-## 💻 开发指南
-
-### 创建新应用
-```bash
-python manage.py startapp your_app_name
-# 记得在 settings.py 的 INSTALLED_APPS 中添加新应用
-```
-
-### 数据库操作
-```bash
-# 创建迁移文件
-python manage.py makemigrations
-
-# 查看迁移计划
-python manage.py showmigrations
-
+# 生成迁移文件
+docker-compose exec web python manage.py makemigrations
 # 应用迁移
-python manage.py migrate
-
-# 回滚迁移
-python manage.py migrate app_name migration_name
+docker-compose exec web python manage.py migrate
+# 收集静态资源
+docker-compose exec web python manage.py collectstatic --noinput
+# 进入容器终端
+docker-compose exec web bash
 ```
 
-### 代码质量检查
-```bash
-# 安装开发工具
-pip install black isort flake8
+---
 
-# 代码格式化
-black .
-isort .
+## 🛰️ 部署到生产
 
-# 代码检查
-flake8 .
-```
+1. 设置 `DEBUG=False`，并配置 `ALLOWED_HOSTS`、`SECRET_KEY` 等关键环境变量。
+2. 推荐使用 Nginx 反向代理至容器内 `gunicorn`（已在 `docker-compose.yml` 中预配置）。
+3. 使用持久化卷挂载 `staticfiles/` 与 `media/` 目录。
+4. 如需横向扩容，可在 compose / k8s 中增加 `web` 实例并共享数据库与缓存。
 
-### 添加新的API端点
+---
 
-1. **在models.py中定义模型**
-2. **在serializers.py中创建序列化器**
-3. **在views.py中继承BaseViewSet创建视图**
-4. **在urls.py中配置路由**
-5. **使用装饰器添加日志和验证**
+## 📖 API 快速索引
 
+| 方法 | 路径 | 描述 |
+| ---- | ---- | ---- |
+| `POST` | `/api/users/` | 用户注册 |
+| `POST` | `/api/users/login/` | 用户登录 |
+| `POST` | `/api/users/logout/` | 用户登出 |
+| `GET` | `/api/users/profile/` | 获取个人信息 |
+| `POST` | `/api/users/change_password/` | 修改密码 |
+
+更多接口请查看在线文档。
+
+---
 
 ## 📜 许可证
 
-[MIT License](LICENSE)
+本项目使用 **MIT License**，详见 `LICENSE` 文件。

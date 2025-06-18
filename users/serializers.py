@@ -19,6 +19,21 @@ class UserSerializer(BaseModelSerializer):
         user.save()
         return user
 
+    def update(self, instance, validated_data):
+        """更新用户信息，若包含 password 字段则使用 set_password 进行加密"""
+        password = validated_data.pop('password', None)
+
+        # 更新除密码外的字段
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        # 如有密码则加密
+        if password:
+            instance.set_password(password)
+
+        instance.save()
+        return instance
+
 
 class LoginSerializer(serializers.Serializer):
     """登录序列化器"""

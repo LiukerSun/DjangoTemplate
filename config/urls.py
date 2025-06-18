@@ -27,7 +27,7 @@ schema_view = get_schema_view(
         default_version="v1",
         description="这是一个Django模板项目的API文档",
         terms_of_service="",
-        contact=openapi.Contact(email="admin@example.com"),
+        contact=openapi.Contact(email="evan@liukersun.com"),
         license=openapi.License(name="MIT License"),
     ),
     public=True,

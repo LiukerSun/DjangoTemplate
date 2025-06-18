@@ -238,11 +238,11 @@ REST_FRAMEWORK = {
     "PAGE_SIZE": 10,
     "DEFAULT_RENDERER_CLASSES": (
         [
-            "rest_framework.renderers.JSONRenderer",
+            "core.renderers.ApiResponseRenderer",
         ]
         if not DEBUG
         else [
-            "rest_framework.renderers.JSONRenderer",
+            "core.renderers.ApiResponseRenderer",
             "rest_framework.renderers.BrowsableAPIRenderer",
         ]
     ),
@@ -278,7 +278,7 @@ SWAGGER_SETTINGS = {
         "terms_of_service": "",
         "contact": {
             "name": "管理员",
-            "email": "admin@example.com",
+            "email": "evan@liukersun.com",
         },
         "license": {
             "name": "MIT License",

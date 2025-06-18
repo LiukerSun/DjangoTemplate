@@ -3,6 +3,7 @@ Custom exception handler for django exceptions and some custom exceptions.
 """
 
 from rest_framework.exceptions import APIException
+from rest_framework.response import Response
 from rest_framework.views import exception_handler
 from rest_framework import status
 from django.http import Http404
@@ -14,49 +15,33 @@ def custom_exception_handler(exc, context):
     """
     自定义异常处理
     """
+    # 生成统一的错误信息
+    def _build_error(msg: str, status_code=status.HTTP_400_BAD_REQUEST):
+        return Response(
+            {
+                "status": "error",
+                "message": msg,
+                "data": None,
+            },
+            status=status_code,
+        )
+
     response = exception_handler(exc, context)
     
     if response is None:
+        # 非 DRF 抛出的异常
         if isinstance(exc, Http404):
-            data = {
-                'code': 404,
-                'message': '资源不存在',
-                'detail': str(exc)
-            }
-            response = Response(data, status=status.HTTP_404_NOT_FOUND)
-            
+            response = _build_error("资源不存在", status.HTTP_404_NOT_FOUND)
         elif isinstance(exc, PermissionDenied):
-            data = {
-                'code': 403,
-                'message': '权限不足',
-                'detail': str(exc)
-            }
-            response = Response(data, status=status.HTTP_403_FORBIDDEN)
-            
+            response = _build_error("权限不足", status.HTTP_403_FORBIDDEN)
         elif isinstance(exc, IntegrityError):
-            data = {
-                'code': 400,
-                'message': '数据完整性错误',
-                'detail': str(exc)
-            }
-            response = Response(data, status=status.HTTP_400_BAD_REQUEST)
-            
+            response = _build_error("数据完整性错误", status.HTTP_400_BAD_REQUEST)
         else:
-            data = {
-                'code': 500,
-                'message': '服务器内部错误',
-                'detail': str(exc)
-            }
-            response = Response(data, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
+            response = _build_error("服务器内部错误", status.HTTP_500_INTERNAL_SERVER_ERROR)
     else:
-        # 处理DRF内置异常
-        data = {
-            'code': response.status_code,
-            'message': response.data.get('detail', '请求错误'),
-            'detail': response.data
-        }
-        response.data = data
+        # DRF 内置异常
+        message = response.data.get("detail", "请求错误")
+        response = _build_error(message, response.status_code)
     
     return response
 
